@@ -1,10 +1,9 @@
 import datetime
-from pathlib import Path
 import re
 
 import scrapy
 
-from talkshowguests import Talkshow
+from talkshowguests.items import TalkshowItem
 
 
 class MaischbergerSpider(scrapy.Spider):
@@ -29,23 +28,22 @@ class MaischbergerSpider(scrapy.Spider):
                 title_match["date"],
                 "%d.%m.%Y"
             )
-            if (datetime.datetime.now() - date_of_show).days > 0:
-                # Skip if date is in the past
-                continue
+            # if (datetime.datetime.now() - date_of_show).days > 0:
+            #     # Skip if date is in the past
+            #     continue
 
-            guest_list = teaser_txt
             # Remove prefix and postfix:
-            self.log(f"{teaser_txt=}")
+            guest_list = teaser_txt
             match = re.search(
                 r"^(?:Zu Gast:|Mit)?"  # prefix
                 r"\s*(?P<guest_list>.+?)"
-                r"(?:\.?\s*\xa0\|\xa0)?$",  # postfix
+                r"(?:\.?\s*\xa0\|\xa0)?$",  # postfix "\xa0|\xa0"
                 guest_list
             )
             if match:
                 guest_list = match["guest_list"]
 
-            yield Talkshow.from_guest_list(
+            yield TalkshowItem.from_guest_list(
                 name="Maischberger",
                 isodate=date_of_show.isoformat(),
                 guest_list=guest_list,
