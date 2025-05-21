@@ -1,0 +1,19 @@
+[project]
+name = "talkshowguests"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Lukas Stratmann", email = "lukas@lukas-stratmann.com"}
+]
+requires-python = ">=3.13"
+dependencies = [
+    "scrapy (>=2.13.0,<3.0.0)"
+]
+
+[project.scripts]
+talkshowguests = 'talkshowguests:main'
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
