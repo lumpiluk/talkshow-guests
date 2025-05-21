@@ -47,6 +47,6 @@ class MaischbergerSpider(scrapy.Spider):
 
             yield Talkshow.from_guest_list(
                 name="Maischberger",
-                date=date_of_show,
+                isodate=date_of_show.isoformat(),
                 guest_list=guest_list,
             )

@@ -1,32 +1,20 @@
-import datetime
+import scrapy
 
 
-class Talkshow:
-    def __init__(
-            self,
-            name: str,
-            date: datetime.datetime,
-            guests: list[str],
-    ):
-        self.name = name
-        self.date = date
-        self.guests = guests
+class Talkshow(scrapy.Item):
+    name = scrapy.Field()
+    isodate = scrapy.Field()
+    guests = scrapy.Field()
 
     def from_guest_list(
         name: str,
-        date: datetime.datetime,
+        isodate: str,
         guest_list: str,
     ) -> "Talkshow":
         return Talkshow(
             name=name,
-            date=date,
+            isodate=isodate,
             guests=Talkshow.parse_guest_list(guest_list),
-        )
-
-    def __str__(self):
-        print(
-            f"Talkshow \"{self.name}\" on {self.date}:\n"
-            + ",\n".join(self.guests)
         )
 
     def parse_guest_list(guest_list: str) -> list[str]:
