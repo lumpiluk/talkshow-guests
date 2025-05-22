@@ -45,5 +45,8 @@ class MarkusLanzSpider(scrapy.Spider):
                         potential_dates[-1]
                         if potential_dates else "1970-01-01"
                     ),
+                    topic="",  # TODO
+                    topic_details="",  # TODO
+                    url=response.url,
                     guests=guests,
                 )

@@ -10,15 +10,24 @@ class TalkshowItem(scrapy.Item):
     name = scrapy.Field()
     isodate = scrapy.Field()
     guests = scrapy.Field()
+    topic = scrapy.Field()
+    topic_details = scrapy.Field()
+    url = scrapy.Field()
 
     def from_guest_list(
         name: str,
         isodate: str,
+        topic: str,
+        topic_details: str,
+        url: str,
         guest_list: str,
     ) -> "TalkshowItem":
         return TalkshowItem(
             name=name,
             isodate=isodate,
+            topic=topic,
+            topic_details=topic_details,
+            url=url,
             guests=TalkshowItem.parse_guest_list(guest_list),
         )
 

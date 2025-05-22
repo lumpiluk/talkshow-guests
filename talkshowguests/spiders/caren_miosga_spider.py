@@ -10,7 +10,7 @@ class CarenMiosgaSpider(scrapy.Spider):
     name = "carenmiosga"
 
     start_urls = [
-            "https://www.daserste.de/information/talk/caren-miosga/sendung/index.html",  # noqa: E501
+        "https://www.daserste.de/information/talk/caren-miosga/sendung/index.html",  # noqa: E501
     ]
 
     def parse(self, response):
@@ -40,6 +40,9 @@ class CarenMiosgaSpider(scrapy.Spider):
             yield TalkshowItem(
                 name="Caren Miosga",
                 isodate=date.isoformat(),
+                topic="",  # TODO
+                topic_details="",  # TODO
+                url=response.url,
                 guests=guests,
             )
 

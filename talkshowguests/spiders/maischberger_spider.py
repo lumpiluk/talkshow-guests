@@ -46,5 +46,8 @@ class MaischbergerSpider(scrapy.Spider):
             yield TalkshowItem.from_guest_list(
                 name="Maischberger",
                 isodate=date_of_show.isoformat(),
+                topic="",  # TODO
+                topic_details="",  # TODO
+                url=response.url,
                 guest_list=guest_list,
             )
