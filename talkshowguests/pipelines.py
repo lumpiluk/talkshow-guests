@@ -13,7 +13,7 @@ from scrapy.exceptions import DropItem
 
 class TalkshowguestsPipeline:
     def process_item(self, item, spider):
-        date = datetime.datetime.fromisoformat(item["isodate"])
+        # date = datetime.datetime.fromisoformat(item["isodate"])
         # if (datetime.datetime.now() - date).days > 0:
         #     raise DropItem(f"Date is in the past: {date}")
         # ^ We'll do that in postprocessing, because we also
