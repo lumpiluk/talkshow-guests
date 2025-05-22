@@ -14,7 +14,7 @@ class TalkshowItem(scrapy.Item):
     topic_details = scrapy.Field()
     url = scrapy.Field()
 
-    @classmethod
+    @staticmethod
     def from_guest_list(
         name: str,
         isodate: str,
@@ -32,7 +32,7 @@ class TalkshowItem(scrapy.Item):
             guests=TalkshowItem.parse_guest_list(guest_list),
         )
 
-    @classmethod
+    @staticmethod
     def parse_guest_list(guest_list: str) -> list[str]:
         """
         Guests lists may look like this:
