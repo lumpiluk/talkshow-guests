@@ -11,7 +11,7 @@ dependencies = [
 ]
 
 [project.scripts]
-talkshowguests = 'talkshowguests:main'
+talkshowguests = 'talkshowguests.__main__:main'
 
 
 [build-system]
