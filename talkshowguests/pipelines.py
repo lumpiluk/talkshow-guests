@@ -16,4 +16,7 @@ class TalkshowguestsPipeline:
         date = datetime.datetime.fromisoformat(item["isodate"])
         # if (datetime.datetime.now() - date).days > 0:
         #     raise DropItem(f"Date is in the past: {date}")
+        # ^ We'll do that in postprocessing, because we also
+        #   want to check if any of the spiders didn't return
+        #   any results at all.
         return item

@@ -17,8 +17,7 @@ class MarkusLanzSpider(scrapy.Spider):
         # elements at the end of the page:
         script_elems = response.css("script::text")
         re_guests = re.compile(
-            r"Unsere Gäste am.*, \d+.*\\\""
-            r"\.*text\\\":\\\""
+            r"Unsere Gäste am.*, \d+"
             r"(.*)"
             r"paragraph-content-aggregator"
         )
