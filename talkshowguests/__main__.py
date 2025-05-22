@@ -47,6 +47,8 @@ def main():
     settings = get_project_settings()
     settings.set("FEED_FORMAT", "jsonlines")
     settings.set("FEED_URI", str(args.crawler_results))
+    # Clear previous results because 'jsonlines' seems to append:
+    args.crawler_results.unlink(missing_ok=True)
 
     process = CrawlerProcess(settings)
     for spider in process.spider_loader.list():
