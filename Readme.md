@@ -33,6 +33,30 @@ TELEGRAM_API_TOKEN=yourtokenhere
 TELEGRAM_CHAT_ID=yourchatid
 ```
 
+### Docker
+
+```bash
+docker compose up
+# Add `--build` to rebuild the container if you made changes
+```
+
+This will run the `talkshowguests` command in a cron job in the interval defined in `Dockerfile`.
+This will crawl all supported web pages.
+Crawl results are saved to `latest-results.jsonlines`.
+If any new episodes were found that the bot hasn't reported on yet,
+the bot will post a new update.
+Finally, this will store a `history.json` that contains all previously reported episodes.
+
+The files
+`latest-results.jsonlines` and `history.json` will be written to the `data/` folder.
+
+To check the cron.log file:
+```bash
+docker compose up -d
+docker exec -it talkshowguests /bin/bash
+$ cat /var/log/cron.log
+```
+
 ### Poetry
 
 Install Python and Poetry, then:
@@ -42,10 +66,11 @@ poetry install
 poetry run talkshowguests --report-telegram
 ```
 
-This will crawl all supported web pages,
-save the results to `latest-results.jsonlines`,
-make a new Telegram post if any new episodes were found that the bot hasn't reported on yet,
-and finally it will store a `history.json` that contains all previously reported episodes.
+This will crawl all supported web pages.
+Crawl results are saved to `latest-results.jsonlines`.
+If any new episodes were found that the bot hasn't reported on yet,
+the bot will post a new update.
+Finally, this will store a `history.json` that contains all previously reported episodes.
 
 You can also check the output of individual Spiders by running
 ```bash
@@ -55,8 +80,3 @@ poetry run scrapy crawl <name of spider>
 poetry run scrapy crawl carenmiosga
 ```
 Check the [Scrapy documentation](https://docs.scrapy.org/en/latest/) for more details.
-
-
-### Docker
-
-TODO

@@ -1,0 +1,10 @@
+services:
+  talkshowguests:
+    build: .
+    container_name: talkshowguests
+    env_file:
+      - .env
+    volumes:
+      - type: bind
+        source: ./data
+        target: /data
