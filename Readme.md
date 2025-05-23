@@ -36,8 +36,7 @@ TELEGRAM_CHAT_ID=yourchatid
 ### Docker
 
 ```bash
-docker compose up
-# Add `--build` to rebuild the container if you made changes
+docker compose up -d
 ```
 
 This will run the `talkshowguests` command in a cron job in the interval defined in `docker-entrypoint.sh`.
@@ -55,6 +54,13 @@ To check the cron.log file:
 docker compose up -d
 docker exec -it talkshowguests /bin/bash
 $ cat /var/log/cron.log
+```
+
+#### Updating
+
+```bash
+docker compose down
+docker compose up --build -d
 ```
 
 ### Poetry
