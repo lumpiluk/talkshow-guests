@@ -9,7 +9,12 @@ HOST_GID=$(stat -c '%g' /data)
 
 if [ "$HOST_UID" -ne 0 ]; then
     addgroup --gid $HOST_GID hostgroup
-    adduser --uid $HOST_UID --gid $HOST_GID --disabled-password --gecos "" hostuser
+    adduser --uid $HOST_UID \
+        --gid $HOST_GID \
+        --disabled-password \
+        --no-create-home \
+        --gecos "" \
+        hostuser
     CRON_USER=hostuser
 else
     echo "Running as root based on ownership of the /data directory."
