@@ -40,7 +40,7 @@ docker compose up
 # Add `--build` to rebuild the container if you made changes
 ```
 
-This will run the `talkshowguests` command in a cron job in the interval defined in `Dockerfile`.
+This will run the `talkshowguests` command in a cron job in the interval defined in `docker-entrypoint.sh`.
 This will crawl all supported web pages.
 Crawl results are saved to `latest-results.jsonlines`.
 If any new episodes were found that the bot hasn't reported on yet,

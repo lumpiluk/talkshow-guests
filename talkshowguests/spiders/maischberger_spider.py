@@ -28,9 +28,6 @@ class MaischbergerSpider(scrapy.Spider):
                 title_match["date"],
                 "%d.%m.%Y"
             )
-            # if (datetime.datetime.now() - date_of_show).days > 0:
-            #     # Skip if date is in the past
-            #     continue
 
             # Remove prefix and postfix:
             guest_list = teaser_txt

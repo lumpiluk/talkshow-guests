@@ -40,13 +40,5 @@ cd /talkshowguests\n\
 >> /run.sh
 RUN chmod +x /run.sh
 
-RUN echo "*/20 * * * * root /run.sh >> /var/log/cron.log 2>&1" \
-    > /etc/cron.d/talkshowguests
-
-RUN chmod 0644 /etc/cron.d/talkshowguests
-
-# Create the log file
-RUN touch /var/log/cron.log
-
 RUN chmod +x docker-entrypoint.sh
 ENTRYPOINT ["/talkshowguests/docker-entrypoint.sh"]
