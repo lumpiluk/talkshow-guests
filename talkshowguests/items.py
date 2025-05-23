@@ -6,6 +6,13 @@
 import scrapy
 
 
+_COMPARE_IGNORE_KEYS = {
+    "reported_on",  # added to dict in __main__.py
+    "update_history",  # same, if episode was updated
+    "diff_keys",  # same
+}
+
+
 class TalkshowItem(scrapy.Item):
     name = scrapy.Field()
     isodate = scrapy.Field()
@@ -13,6 +20,30 @@ class TalkshowItem(scrapy.Item):
     topic = scrapy.Field()
     topic_details = scrapy.Field()
     url = scrapy.Field()
+
+    # Optional fields used only for items that we've already
+    # reported on:
+    reported_on = scrapy.Field()
+    update_history = scrapy.Field()
+    diff_keys = scrapy.Field()
+
+    def eq_with_ignore(self, other):
+        """Same as `==`, but ignores irrelevant keys."""
+        # (We cannot override __eq__ because then we'd also
+        # have to override __hash__ and that doesn't seem to
+        # work well with scrapy Items since hash() appears to
+        # be called before the item's fields are initialized.)
+        for key in set(self.keys()) - _COMPARE_IGNORE_KEYS:
+            if self[key] != other[key]:
+                return False
+        return True
+
+    def get_diff_keys(self, other):
+        return [
+            key
+            for key in set(self.keys()) - _COMPARE_IGNORE_KEYS
+            if self[key] != other[key]
+        ]
 
     @staticmethod
     def from_guest_list(

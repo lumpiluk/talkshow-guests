@@ -1,5 +1,5 @@
-import asyncio
 import argparse
+import copy
 import datetime
 import json
 import os
@@ -8,9 +8,9 @@ import pathlib
 from dotenv import load_dotenv
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
-import telegram
 
 from .items import TalkshowItem
+from .reports.telegram import report_episodes_telegram
 
 
 def main():
@@ -67,7 +67,9 @@ def main():
         history: dict[str, dict] = dict()
         # Keys: "talkshow_isodate, talkshow_name".
         # Should contain TalkshowItem instances or equivalent
-        # dicts with an extra entry "reported_on".
+        # dicts with an extra entry "reported_on" and
+        # optionally "update_history" and "diff_keys" if one
+        # episode was reported more than once due to updates.
 
     episodes_to_report = []
     for episode in results:
@@ -75,10 +77,24 @@ def main():
         if (datetime.datetime.now() - date).days > 0:
             # Date is in the past
             continue
-        if f"{episode["isodate"]}, {episode["name"]}" in history:
-            # We've already reported on this episode:
-            continue
-            # TODO: don't skip if any content changed!
+        ep_key = f"{episode["isodate"]}, {episode["name"]}"
+        if ep_key in history:
+            if episode.eq_with_ignore(history[ep_key]):
+                # We've already reported on this episode:
+                continue
+            # Don't skip if any content changed!
+            if "update_history" not in episode:
+                episode["update_history"] = []
+            # Copy episode from history to this episode's
+            # update_history.
+            # Using the episode from history instead of this
+            # episode has the advantage that "reported_on"
+            # will be included.
+            episode["update_history"].append(
+                copy.deepcopy(history[ep_key])
+            )
+            episode["diff_keys"] = episode.get_diff_keys(history[ep_key])
+
         episodes_to_report.append(episode)
 
     if args.report_telegram:
@@ -103,44 +119,3 @@ def main():
     })
     with args.history_file.open("w") as f:
         f.write(json.dumps(history))
-
-
-def report_episodes_telegram(
-    episodes: list[TalkshowItem],
-    api_token: str,
-    chat_id: str,
-):
-    if not episodes:
-        return
-
-    async def _send_message(msg: str):
-        bot = telegram.Bot(api_token)
-        async with bot:
-            await bot.send_message(
-                text=msg,
-                chat_id=chat_id,
-                parse_mode="MarkdownV2",
-                disable_web_page_preview=True,
-            )
-
-    msg = "*Neue Talkshow-Folgen:*\n\n"
-    for episode in episodes:
-        msg += "["  # start link
-        msg += datetime.datetime.fromisoformat(episode["isodate"]).strftime(
-            "%Y-%m-%d"  # We don't want hours and minutes for now
-        )
-        msg += (
-            f" *{episode['name']}*]({episode['url']})\n"
-            f"Gäste:"
-            + (
-                "\n" +
-                "\n".join([f"- {g}" for g in episode['guests']])
-                if episode["guests"]
-                else " TBA"
-            )
-            + (f"\nThema: _{episode['topic']}_" if episode["topic"] else "")
-            + "\n\n"
-        )
-    msg = msg.replace("-", r"\-")
-    print(msg)
-    asyncio.run(_send_message(msg))
