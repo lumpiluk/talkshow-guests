@@ -2,7 +2,7 @@ import re
 
 import scrapy
 
-from talkshowguests.items import TalkshowItem
+from talkshowguests.items import GuestItem, TalkshowItem
 
 
 class MarkusLanzSpider(scrapy.Spider):
@@ -47,5 +47,5 @@ class MarkusLanzSpider(scrapy.Spider):
                     topic="",  # TODO
                     topic_details="",  # TODO
                     url=response.url,
-                    guests=guests,
+                    guests=[GuestItem.from_text(g) for g in guests],
                 )

@@ -41,22 +41,10 @@ def report_episodes_telegram(
             )
         )
         msg += (
-            f" *{episode['name']}*]({episode['url']})\n"
-            f"Gäste"
-            + _escape(
-                " (aktualisiert):"
-                if "guests" in episode.get("diff_keys", {})
-                else ":"
-            )
-            + _escape(
-                "\n" +
-                "\n".join([f"- {g}" for g in episode['guests']])
-                if episode["guests"]
-                else " TBA"
-            )
+            f" *{episode['name']}*]({episode['url']})"
             + (
                 _escape(
-                    "\nThema"
+                    "\n*Thema*"
                     + (
                         " (aktualisiert)"
                         if "topic" in episode.get("diff_keys", {})
@@ -66,6 +54,22 @@ def report_episodes_telegram(
                 )
                 if episode["topic"]
                 else ""
+            )
+            + "\n*Gäste*"
+            + _escape(
+                " (aktualisiert):"
+                if "guests" in episode.get("diff_keys", {})
+                else ":"
+            )
+            + _escape(
+                "\n" +
+                "\n".join([
+                    f"- {g["name"]}"
+                    + (f" ({g["affiliation"]})" if g["affiliation"] else "")
+                    for g in episode['guests']
+                ])
+                if episode["guests"]
+                else " TBA"
             )
             + "\n\n"
         )

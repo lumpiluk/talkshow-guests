@@ -3,6 +3,8 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/items.html
 
+import re
+
 import scrapy
 
 
@@ -13,13 +15,42 @@ _COMPARE_IGNORE_KEYS = {
 }
 
 
+class GuestItem(scrapy.Item):
+    name: str = scrapy.Field()
+    affiliation: str = scrapy.Field()
+
+    @staticmethod
+    def from_text(text: str):
+        """
+        Convert text to a GuestItem.
+
+        Guests are often written as:
+        - "FIRSTNAME LASTNAME"
+        - "FIRSTNAME LASTNAME (AFFILIATION)"
+        - "FIRSTNAME LASTNAME, AFFILIATION"
+        """
+        if m := re.match(r"^(.*)\s+\((.*)\)$", text):
+            name = m.group(1)
+            affiliation = m.group(2)
+        elif m := re.match(r"^(.*),\s+(.*)$", text):
+            name = m.group(1)
+            affiliation = m.group(2)
+        else:
+            name = text
+            affiliation = ""
+        return GuestItem(
+            name=name,
+            affiliation=affiliation,
+        )
+
+
 class TalkshowItem(scrapy.Item):
-    name = scrapy.Field()
-    isodate = scrapy.Field()
-    guests = scrapy.Field()
-    topic = scrapy.Field()
-    topic_details = scrapy.Field()
-    url = scrapy.Field()
+    name: str = scrapy.Field()
+    isodate: str = scrapy.Field()
+    guests: list[GuestItem] = scrapy.Field()
+    topic: str = scrapy.Field()
+    topic_details: str = scrapy.Field()
+    url: str = scrapy.Field()
 
     # Optional fields used only for items that we've already
     # reported on:
@@ -107,4 +138,7 @@ class TalkshowItem(scrapy.Item):
             if buf:
                 parts.append(buf.strip())
             return parts
-        return smart_split(guest_list)
+        return [
+            GuestItem.from_text(g)
+            for g in smart_split(guest_list)
+        ]

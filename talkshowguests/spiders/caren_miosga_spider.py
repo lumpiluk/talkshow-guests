@@ -3,7 +3,7 @@ import re
 
 import scrapy
 
-from talkshowguests.items import TalkshowItem
+from talkshowguests.items import GuestItem, TalkshowItem
 
 
 class CarenMiosgaSpider(scrapy.Spider):
@@ -24,7 +24,7 @@ class CarenMiosgaSpider(scrapy.Spider):
                 if "\xa0|\xa0" in info_txt
                 else info_txt
                 for info_txt
-                in response.css(".infotext::text").getall()
+                in response.css(".mediaLeft .infotext::text").getall()
             ]
             date_match = re.search(
                 r"(\d+.\d+.\d+)",
@@ -40,10 +40,10 @@ class CarenMiosgaSpider(scrapy.Spider):
             yield TalkshowItem(
                 name="Caren Miosga",
                 isodate=date.isoformat(),
-                topic="",  # TODO
+                topic=response.css("h1::text").get(),
                 topic_details="",  # TODO
                 url=response.url,
-                guests=guests,
+                guests=[GuestItem.from_text(g) for g in guests],
             )
 
         # Follow links to the respective page of each show:

@@ -55,10 +55,7 @@ def main():
     process.start()
 
     with open(args.crawler_results, "r") as f:
-        results = [TalkshowItem(**json.loads(line)) for line in f]
-
-        # print("\n\n\nHere come the results:")
-        # print(results)
+        crawler_results = [TalkshowItem(**json.loads(line)) for line in f]
 
     if args.history_file.exists():
         with args.history_file.open("r") as f:
@@ -72,7 +69,7 @@ def main():
         # episode was reported more than once due to updates.
 
     episodes_to_report = []
-    for episode in results:
+    for episode in crawler_results:
         date = datetime.datetime.fromisoformat(episode["isodate"])
         if (datetime.datetime.now() - date).days > 0:
             # Date is in the past

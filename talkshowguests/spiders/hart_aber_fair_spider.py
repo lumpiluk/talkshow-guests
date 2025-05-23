@@ -3,7 +3,7 @@ import re
 
 import scrapy
 
-from talkshowguests.items import TalkshowItem
+from talkshowguests.items import GuestItem, TalkshowItem
 
 
 def strip(text: str) -> str:
@@ -36,12 +36,12 @@ class HartAberFairSpider(scrapy.Spider):
         else:
             date = datetime.datetime.fromisoformat("1970-01-01")
 
-        guests = []
+        guests: list[GuestItem] = []
         for section in response.css(".sectionA"):
             if strip(section.css(".conHeadline::text").get()) != "Gäste":
                 continue
             guests = list({
-                strip(guest)
+                GuestItem.from_text(strip(guest))
                 for guest
                 in section.css(".box h4.headline::text").getall()
             })
