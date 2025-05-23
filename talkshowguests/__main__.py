@@ -6,7 +6,6 @@ import os
 import pathlib
 
 from dotenv import load_dotenv
-import pandas as pd
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 import telegram
@@ -25,10 +24,10 @@ def main():
     parser.add_argument(
         "--history-file",
         type=pathlib.Path,
-        help="Path to a history CSV file of previously "
+        help="Path to a history file of previously "
              "reported talkshows. Will be created if it "
              "does not yet exist.",
-        default=pathlib.Path("history.csv"),
+        default=pathlib.Path("history.json"),
     )
     parser.add_argument(
         "--report-telegram",
@@ -62,11 +61,13 @@ def main():
         # print(results)
 
     if args.history_file.exists():
-        history = pd.read_csv(args.history_file)
+        with args.history_file.open("r") as f:
+            history = json.load(f)
     else:
-        history = pd.DataFrame(
-            columns=list(TalkshowItem.fields.keys()) + ["reported_on"]
-        )
+        history: dict[str, dict] = dict()
+        # Keys: "talkshow_isodate, talkshow_name".
+        # Should contain TalkshowItem instances or equivalent
+        # dicts with an extra entry "reported_on".
 
     episodes_to_report = []
     for episode in results:
@@ -74,10 +75,7 @@ def main():
         if (datetime.datetime.now() - date).days > 0:
             # Date is in the past
             continue
-        if not history.query(
-                f"isodate==\"{episode['isodate']}\" "
-                f"and name==\"{episode['name']}\""
-        ).empty:
+        if f"{episode["isodate"]}, {episode["name"]}" in history:
             # We've already reported on this episode:
             continue
             # TODO: don't skip if any content changed!
@@ -97,14 +95,14 @@ def main():
                 "Missing TELEGRAM_API_TOKEN or TELEGRAM_CHAT_ID"
             )
 
-    new_history = pd.concat([
-        history,
-        pd.DataFrame.from_records([
-            {"reported_on": datetime.datetime.now(), **ep}
-            for ep in episodes_to_report
-        ])
-    ])
-    new_history.to_csv(args.history_file)
+    history.update({
+        # Merge key into one str because json doesn't like tuple keys:
+        f"{ep["isodate"]}, {ep["name"]}":
+        {"reported_on": datetime.datetime.now().isoformat(), **ep}
+        for ep in episodes_to_report
+    })
+    with args.history_file.open("w") as f:
+        f.write(json.dumps(history))
 
 
 def report_episodes_telegram(
@@ -122,20 +120,27 @@ def report_episodes_telegram(
                 text=msg,
                 chat_id=chat_id,
                 parse_mode="MarkdownV2",
+                disable_web_page_preview=True,
             )
 
     msg = "*Neue Talkshow-Folgen:*\n\n"
     for episode in episodes:
+        msg += "["  # start link
         msg += datetime.datetime.fromisoformat(episode["isodate"]).strftime(
             "%Y-%m-%d"  # We don't want hours and minutes for now
         )
         msg += (
-            f" *{episode['name']}*\n"
-            f"Gäste:\n"
-            + "\n".join([f"- {g}" for g in episode['guests']])
-            + (f"Thema: _{episode['topic']}_" if episode["topic"] else "")
+            f" *{episode['name']}*]({episode['url']})\n"
+            f"Gäste:"
+            + (
+                "\n" +
+                "\n".join([f"- {g}" for g in episode['guests']])
+                if episode["guests"]
+                else " TBA"
+            )
+            + (f"\nThema: _{episode['topic']}_" if episode["topic"] else "")
             + "\n\n"
         )
-    msg = msg.replace("-", "\-")
+    msg = msg.replace("-", r"\-")
     print(msg)
     asyncio.run(_send_message(msg))
