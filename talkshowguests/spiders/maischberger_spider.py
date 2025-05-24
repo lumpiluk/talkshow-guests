@@ -40,11 +40,37 @@ class MaischbergerSpider(scrapy.Spider):
             if match:
                 guest_list = match["guest_list"]
 
-            yield TalkshowItem.from_guest_list(
-                name="Maischberger",
-                isodate=date_of_show.isoformat(),
-                topic="",  # TODO
-                topic_details="",  # TODO
-                url=response.url,
-                guest_list=guest_list,
+            # The overview page is good for getting the guest list,
+            # but it does not list the topics of episodes.
+            # -> Pass guest list on to a new request for the episode
+            # page
+            href = teaser.css(".headline>a::attr(href)").get()
+            yield scrapy.Request(
+                response.urljoin(href),
+                meta={
+                    "guest_list": guest_list,
+                    "isodate": date_of_show.isoformat(),
+                },
+                callback=self.parse_episode_page,
             )
+
+    def parse_episode_page(self, response):
+        # Maischberger does not seem to list a concise topic
+        # for an entire episode. Instead there are usually three
+        # paragraphs:
+        # 1. "TOPIC A: guests that talk about this topic"
+        # 2. "TOPIC B: guests that talk about this topic"
+        # 3. "Es kommentieren: more guests"
+        # We can't rely on colons as separators between topics
+        # and guests here.
+        # -> Use the first two paragraphs as topic:
+        topic = " ".join(response.css(".con p::text").getall()[:2])
+        yield TalkshowItem.from_guest_list(
+            name="Maischberger",
+            isodate=response.meta["isodate"],
+            # First paragraph should contain the topic:
+            topic=topic,
+            topic_details="",  # Would be the same as topic here
+            url=response.url,
+            guest_list=response.meta["guest_list"],
+        )
