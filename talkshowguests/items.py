@@ -20,7 +20,7 @@ class GuestItem(scrapy.Item):
     affiliation: str = scrapy.Field()
 
     @staticmethod
-    def from_text(text: str):
+    def from_text(text: str) -> "GuestItem":
         """
         Convert text to a GuestItem.
 
@@ -28,20 +28,35 @@ class GuestItem(scrapy.Item):
         - "FIRSTNAME LASTNAME"
         - "FIRSTNAME LASTNAME (AFFILIATION)"
         - "FIRSTNAME LASTNAME, AFFILIATION"
+        - "FIRSTNAME LASTNAME (AFFILIATION 1), AFFILIATION 2" (Illner...)
         """
-        if m := re.match(r"^(.*)\s+\((.*)\)$", text):
-            name = m.group(1)
-            affiliation = m.group(2)
-        elif m := re.match(r"^(.*),\s+(.*)$", text):
-            name = m.group(1)
-            affiliation = m.group(2)
+        m = re.match(
+            r"^(?P<name>[^\(,]+?)"
+            r"(?:\s+\((?P<paren_affiliation>[^)]+)\))?"
+            "(?:,\s*(?P<comma_affiliation>.+))?$",
+            text
+        )
+        if m:
+            name = m["name"]
+            affiliation = m["paren_affiliation"] or ""
+            if m["paren_affiliation"] and m["comma_affiliation"]:
+                affiliation += ", " + m["comma_affiliation"] or ""
+            else:
+                affiliation = m["comma_affiliation"] or ""
         else:
             name = text
             affiliation = ""
         return GuestItem(
-            name=name,
-            affiliation=affiliation,
+            name=GuestItem._strip_text(name),
+            affiliation=GuestItem._strip_text(affiliation),
         )
+
+    @staticmethod
+    def _strip_text(text: str) -> str:
+        return text.replace(
+            "<strong>", "").replace(
+            "</strong>", "").replace(
+            "\xa0", " ").strip()
 
 
 class TalkshowItem(scrapy.Item):

@@ -65,7 +65,6 @@ class MarkusLanzSpider(scrapy.Spider):
                 ]
                 yield TalkshowItem(
                     name="Markus Lanz",
-                    # ^ We could also parse this, but better be safe
                     isodate=episode_obj.get("editorialDate"),
                     topic=episode_obj.get("teaser", {}).get("description"),
                     topic_details="",
