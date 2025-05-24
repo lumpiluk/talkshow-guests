@@ -1,6 +1,6 @@
 import scrapy
 
-from talkshowguests.spiders.utils_zdf import parse_script_text, parse_zdf
+from talkshowguests.spiders.utils_zdf import parse_script_text
 
 
 class MaybritIllnerSpider(scrapy.Spider):
@@ -10,8 +10,5 @@ class MaybritIllnerSpider(scrapy.Spider):
         "https://www.zdf.de/talk/maybrit-illner-128",
     ]
 
-    parse = lambda self, response: parse_zdf(
-        self,
-        response,
-        name_of_show="Maybrit Illner",
-    )
+    def parse(self, response):
+        pass
