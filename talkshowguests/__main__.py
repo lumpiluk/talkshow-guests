@@ -71,7 +71,9 @@ def main():
     episodes_to_report = []
     for episode in crawler_results:
         date = datetime.datetime.fromisoformat(episode["isodate"])
-        if (datetime.datetime.now() - date).days > 0:
+        if not date.tzinfo:
+            date = date.replace(tzinfo=datetime.timezone.utc)
+        if (datetime.datetime.now(datetime.timezone.utc) - date).days > 0:
             # Date is in the past
             continue
         ep_key = f"{episode["isodate"]}, {episode["name"]}"
