@@ -39,7 +39,7 @@ TELEGRAM_CHAT_ID=yourchatid
 docker compose up -d
 ```
 
-This will run the `talkshowguests` command in a cron job in the interval defined in `docker-entrypoint.sh`.
+This will run the `talkshowguests` command in a cron job in the interval defined in `compose.yaml`.
 This will crawl all supported web pages.
 Crawl results are saved to `latest-results.jsonlines`.
 If any new episodes were found that the bot hasn't reported on yet,
