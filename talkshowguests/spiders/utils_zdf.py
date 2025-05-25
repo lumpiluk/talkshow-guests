@@ -7,6 +7,34 @@ import json
 import re
 
 
+def get_episodes_from_zdf_page(response):
+    # All relevant content is included in many <script>
+    # elements at the end of the page:
+    script_elems = response.css("script::text")
+
+    for script_elem in script_elems:
+        script_data = parse_script_text(script_elem.get())
+        if not script_data:
+            continue
+
+        # Useful if you want to inspect the json objects:
+        # with open(f"debug_script-data_{hash(script_elem)}.json", "w") as f:
+        #     json.dump(script_data, f, indent=2)
+
+        try:
+            season_objs: list[dict] = script_data[0][
+                "result"]["data"][
+                "smartCollectionByCanonical"][
+                "seasons"][
+                "nodes"]
+        except (KeyError, TypeError):
+            # Probably not the script_elem we are looking for
+            continue
+        for season_obj in season_objs:
+            for ep in season_obj["episodes"]["nodes"]:
+                yield ep
+
+
 def parse_script_text(text: str) -> dict:
     """
     Attempt to convert the content of a <script>
