@@ -117,4 +117,4 @@ def main():
         for ep in episodes_to_report
     })
     with args.history_file.open("w") as f:
-        f.write(json.dumps(history))
+        json.dump(history, f, indent=2, ensure_ascii=False)
