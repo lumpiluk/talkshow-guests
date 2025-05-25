@@ -110,11 +110,12 @@ def main():
                 "Missing TELEGRAM_API_TOKEN or TELEGRAM_CHAT_ID"
             )
 
-    history.update({
-        # Merge key into one str because json doesn't like tuple keys:
-        f"{ep["isodate"]}, {ep["name"]}":
-        {"reported_on": datetime.datetime.now().isoformat(), **ep}
-        for ep in episodes_to_report
-    })
-    with args.history_file.open("w") as f:
-        json.dump(history, f, indent=2, ensure_ascii=False)
+    if episodes_to_report:
+        history.update({
+            # Merge key into one str because json doesn't like tuple keys:
+            f"{ep["isodate"]}, {ep["name"]}":
+            {"reported_on": datetime.datetime.now().isoformat(), **ep}
+            for ep in episodes_to_report
+        })
+        with args.history_file.open("w") as f:
+            json.dump(history, f, indent=2, ensure_ascii=False)
