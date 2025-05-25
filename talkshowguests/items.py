@@ -33,7 +33,7 @@ class GuestItem(scrapy.Item):
         m = re.match(
             r"^(?P<name>[^\(,]+?)"
             r"(?:\s+\((?P<paren_affiliation>[^)]+)\))?"
-            "(?:,\s*(?P<comma_affiliation>.+))?$",
+            r"(?:,\s*(?P<comma_affiliation>.+))?$",
             text
         )
         if m:
@@ -41,7 +41,7 @@ class GuestItem(scrapy.Item):
             affiliation = m["paren_affiliation"] or ""
             if m["paren_affiliation"] and m["comma_affiliation"]:
                 affiliation += ", " + m["comma_affiliation"] or ""
-            else:
+            elif m["comma_affiliation"]:
                 affiliation = m["comma_affiliation"] or ""
         else:
             name = text
