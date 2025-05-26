@@ -16,12 +16,6 @@ class MarkusLanzSpider(scrapy.Spider):
         "https://www.zdf.de/talk/markus-lanz-114",
     ]
 
-    parse = lambda self, response: parse_zdf(
-        self,
-        response,
-        name_of_show="Markus Lanz",
-    )
-
     def parse(self, response):
         for episode_obj in get_episodes_from_zdf_page(response):
             guest_paragraph_objs = episode_obj.get(

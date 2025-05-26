@@ -1,4 +1,3 @@
-import json
 import re
 
 import scrapy
@@ -17,10 +16,6 @@ class MaybritIllnerSpider(scrapy.Spider):
     ]
 
     def parse(self, response):
-        # All relevant content is included in many <script>
-        # elements at the end of the page:
-        script_elems = response.css("script::text")
-
         for episode_obj in get_episodes_from_zdf_page(response):
             guests = []
             info_paragraph_objs = episode_obj.get(
@@ -68,4 +63,3 @@ class MaybritIllnerSpider(scrapy.Spider):
                 url=response.url,
                 guests=guests,
             )
-
