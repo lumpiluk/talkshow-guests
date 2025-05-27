@@ -14,10 +14,36 @@ _COMPARE_IGNORE_KEYS = {
     "diff_keys",  # same
 }
 
+_GUEST_LIST_AFFILIATION_KEYWORDS = {
+    "AfD",
+    "B‘90/Grüne",
+    "B‘90/Die Grünen",
+    "B'90/Grüne",
+    "B'90/Die Grünen",
+    "BSW",
+    "Bündnis 90/Die Grünen",
+    "Bündnis 90/Grüne",
+    "CDU",
+    "CSU",
+    "Die Grünen",
+    "Die Linke",
+    "FDP",
+    "Grüne",
+    "Linke",
+    "SPD",
+}
+"""Used to distinguish between affiliation and guest name"""
+
 
 class GuestItem(scrapy.Item):
     name: str = scrapy.Field()
     affiliation: str = scrapy.Field()
+
+    def __lt__(self, other):
+        return (
+            self["name"] + self["affiliation"]
+            < other["name"] + other["affiliation"]
+        )
 
     @staticmethod
     def from_text(text: str) -> "GuestItem":
@@ -29,11 +55,14 @@ class GuestItem(scrapy.Item):
         - "FIRSTNAME LASTNAME (AFFILIATION)"
         - "FIRSTNAME LASTNAME, AFFILIATION"
         - "FIRSTNAME LASTNAME (AFFILIATION 1), AFFILIATION 2" (Illner...)
+        - "FIRSTNAME LASTNAME, AFFILIATION 1 (AFFILIATION 2)" (Maischberger...)
         """
         m = re.match(
             r"^(?P<name>[^\(,]+?)"
             r"(?:\s+\((?P<paren_affiliation>[^)]+)\))?"
-            r"(?:,\s*(?P<comma_affiliation>.+))?$",
+            r"(?:,\s*(?P<comma_affiliation>[^\(]+)"
+            r"(?:\s+\((?P<paren_in_comma_affiliation>[^\)]+)\))?"
+            r")?$",
             text
         )
         if m:
@@ -43,6 +72,8 @@ class GuestItem(scrapy.Item):
                 affiliation += ", " + m["comma_affiliation"] or ""
             elif m["comma_affiliation"]:
                 affiliation = m["comma_affiliation"] or ""
+                if m["paren_in_comma_affiliation"]:
+                    affiliation += f", {m["paren_in_comma_affiliation"]}"
         else:
             name = text
             affiliation = ""
@@ -121,6 +152,13 @@ class TalkshowItem(scrapy.Item):
 
         So we have to separate by commas and by the word "und",
         but only if it's outside of parentheses.
+
+        In some unfortunately-not-rare cases, guest lists may also
+        look like this:
+        "Zu Gast: Markus Söder, CSU (bayerischer Ministerpräsident),
+        Klaus von Dohnanyi, SPD (langjähriger Spitzenpolitiker),
+        Béla Réthy (Sportjournalist), Dagmar Rosenfeld (Media Pioneer)
+        und Sonja Zekri (Süddeutsche Zeitung)."
         """
         def smart_split(s):
             # With help from ChatGPT :S
@@ -153,7 +191,24 @@ class TalkshowItem(scrapy.Item):
             if buf:
                 parts.append(buf.strip())
             return parts
-        return [
-            GuestItem.from_text(g)
-            for g in smart_split(guest_list)
-        ]
+
+        def is_affiliation(item: str):
+            return (
+                item.split("(")[0].strip()
+                in _GUEST_LIST_AFFILIATION_KEYWORDS
+            )
+
+        guest_list_split = smart_split(guest_list)
+
+        # Using a dict with keys only as an ordered set so we don't have
+        # to sort and thus mangle the order of the guests.
+        return list({
+            (
+                GuestItem.from_text(first)
+                if second is None or not is_affiliation(second)
+                else GuestItem.from_text(f"{first}, {second}")
+            ): None
+            for (first, second)
+            in zip(guest_list_split, guest_list_split[1:] + [None])
+            if not is_affiliation(first)
+        }.keys())
