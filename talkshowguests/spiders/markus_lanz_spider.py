@@ -22,14 +22,14 @@ class MarkusLanzSpider(scrapy.Spider):
                 "longInfoText", {}).get(
                 "items", [{}])[0].get(
                 "paragraph")
+            print(guest_paragraph_objs)
             guests = [
-                GuestItem.from_text(m.group(1))
+                GuestItem.from_text(m)
                 for par in guest_paragraph_objs
-                for m in [re.search(
-                    r"<strong>(.*?)</strong>",
-                    par.get("text", ""))
-                ]
-                if m  # only include if there's a match
+                for m in re.findall(
+                    r"<(?:strong|b)>(.*?)</(?:strong|b)>",
+                    par.get("text", "")
+                )
             ]
             yield TalkshowItem(
                 name="Markus Lanz",
