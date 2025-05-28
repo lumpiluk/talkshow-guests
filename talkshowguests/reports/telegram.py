@@ -42,6 +42,7 @@ def report_episodes_telegram(
         )
         msg += (
             f" *{episode['name']}*]({episode['url']})"
+            # TOPIC
             + (
                 _escape(
                     "\n*Thema*"
@@ -55,6 +56,7 @@ def report_episodes_telegram(
                 if episode["topic"]
                 else ""
             )
+            # GUESTS
             + "\n*Gäste*"
             + _escape(
                 " (aktualisiert):"
@@ -70,6 +72,36 @@ def report_episodes_telegram(
                 ])
                 if episode["guests"]
                 else " TBA"
+            )
+            # RECORDING
+            + (
+                "\n*Aufzeichnung*"
+                + _escape(
+                    " (aktualisiert): "
+                    if "recording_info" in episode.get("diff_keys", {})
+                    else ": "
+                )
+                + _escape(
+                    f"{episode["recording_info"].get("location", "(Ort?)")}, "
+                )
+                + _escape(
+                    f"Einlass: {episode["recording_info"].get("doors", "?")}, "
+                    if episode["recording_info"].get("doors")
+                    else ""
+                )
+                + f"[Tickets:]({episode["recording_info"]["tickets_url"]}) "
+                + _escape(
+                    (
+                        "verfügbar"
+                        if episode["recording_info"]["tickets_available"]
+                        else "ausgebucht"
+                    )
+                    if episode["recording_info"]["tickets_available"]
+                    is not None
+                    else "kA"
+                )
+                if episode.get("recording_info")
+                else ""
             )
             + "\n\n"
         )

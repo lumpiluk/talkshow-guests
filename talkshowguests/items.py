@@ -90,6 +90,14 @@ class GuestItem(scrapy.Item):
             "\xa0", " ").strip()
 
 
+class RecordingInfoItem(scrapy.Item):
+    location: str = scrapy.Field()
+    tickets_available: bool = scrapy.Field()
+    doors: str = scrapy.Field()
+    """Time when people may enter"""
+    tickets_url: str = scrapy.Field()
+
+
 class TalkshowItem(scrapy.Item):
     name: str = scrapy.Field()
     isodate: str = scrapy.Field()
@@ -97,6 +105,7 @@ class TalkshowItem(scrapy.Item):
     topic: str = scrapy.Field()
     topic_details: str = scrapy.Field()
     url: str = scrapy.Field()
+    recording_info: RecordingInfoItem = scrapy.Field()
 
     # Optional fields used only for items that we've already
     # reported on:
@@ -111,6 +120,8 @@ class TalkshowItem(scrapy.Item):
         # work well with scrapy Items since hash() appears to
         # be called before the item's fields are initialized.)
         for key in set(self.keys()) - _COMPARE_IGNORE_KEYS:
+            if key not in other:
+                return False
             if self[key] != other[key]:
                 return False
         return True
@@ -119,25 +130,19 @@ class TalkshowItem(scrapy.Item):
         return [
             key
             for key in set(self.keys()) - _COMPARE_IGNORE_KEYS
-            if self[key] != other[key]
+            if (key in self and key not in other)
+            or (key in other and key not in self)
+            or self[key] != other[key]
         ]
 
     @staticmethod
     def from_guest_list(
-        name: str,
-        isodate: str,
-        topic: str,
-        topic_details: str,
-        url: str,
         guest_list: str,
+        **kwargs,
     ) -> "TalkshowItem":
         return TalkshowItem(
-            name=name,
-            isodate=isodate,
-            topic=topic,
-            topic_details=topic_details,
-            url=url,
             guests=TalkshowItem.parse_guest_list(guest_list),
+            **kwargs,
         )
 
     @staticmethod
