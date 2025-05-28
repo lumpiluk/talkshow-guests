@@ -3,7 +3,10 @@ import re
 
 import scrapy
 
-from talkshowguests.items import TalkshowItem, RecordingInfoItem
+from talkshowguests.items import TalkshowItem
+from talkshowguests.spiders.utils_tvtickets import (
+    find_show_in_tickets_page,
+)
 
 
 class MaischbergerSpider(scrapy.Spider):
@@ -48,6 +51,7 @@ class MaischbergerSpider(scrapy.Spider):
             yield scrapy.Request(
                 response.urljoin(href),
                 meta={"talkshow_data": {
+                    "name": "Maischberger",
                     "guest_list": guest_list,
                     "isodate": date_of_show.isoformat(),
                 }},
@@ -85,34 +89,11 @@ class MaischbergerSpider(scrapy.Spider):
         )
 
     def parse_tickets_page(self, response, location="Berlin Adlershof"):
-        episode_elems = response.css(".date_wrapper")
-        months = ["JAN", "FEB", "MÄR", "APR", "MAI", "JUN", "JUL", "AUG",
-                  "SEP", "OKT", "NOV", "DEZ"]
-        for episode_elem in episode_elems:
-            year = episode_elem.css(".year::text").get()
-            month = months.index(episode_elem.css(".month::text").get()) + 1
-            day = int(episode_elem.css(".day::text").get())
-            isodate = f"{year}-{month:02}-{day:02}"
-            if not response.meta["talkshow_data"]["isodate"].startswith(
-                    isodate):
-                self.log(
-                    f"{response.meta["talkshow_data"]["isodate"]=}, "
-                    f"{isodate=}"
-                )
-                continue
-            self.log("FOUND EPISODE")
-            yield TalkshowItem.from_guest_list(
-                name="Maischberger",
-                recording_info=RecordingInfoItem(
-                    location=location,
-                    tickets_available=episode_elem.css(
-                        ".btn_tickets_buchen_info::text").get() == "BUCHEN",
-                    doors=episode_elem.css(
-                        ".termin_abholen::text").get().strip(),
-                    tickets_url=response.url,
-                ),
-                **response.meta["talkshow_data"],
-            )
+        if item := find_show_in_tickets_page(
+                response,
+                recording_location=location,
+        ):
+            yield item
             return
 
         # Eposide not found on this ticket page
@@ -138,7 +119,6 @@ class MaischbergerSpider(scrapy.Spider):
             # Event is neither on the Berlin nor the Cologne ticket page.
             # TalkshowItem without ticket info
             yield TalkshowItem.from_guest_list(
-                name="Maischberger",
                 **response.meta["talkshow_data"],
             )
 
@@ -152,6 +132,5 @@ class MaischbergerSpider(scrapy.Spider):
             f"url: {failure.request.url}"
         )
         yield TalkshowItem.from_guest_list(
-            name="Maischberger",
             **failure.request.meta["talkshow_data"],
         )
