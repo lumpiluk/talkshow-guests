@@ -3,7 +3,7 @@ import re
 
 import scrapy
 
-from talkshowguests.items import GuestItem, TalkshowItem
+from talkshowguests.items import GuestItem, RecordingInfoItem, TalkshowItem
 from talkshowguests.spiders.utils_zdf import (
     get_episodes_from_zdf_page,
 )
@@ -38,4 +38,11 @@ class MarkusLanzSpider(scrapy.Spider):
                 topic_details="",
                 url=response.url,
                 guests=guests,
+                recording_info=RecordingInfoItem(
+                    location="Schützenstraße 15, 22761 Hamburg",
+                    tickets_available=None,
+                    doors="Ohne Publikum",
+                    # According to Wikipedia, recorded some hours before it airs
+                    tickets_url=None,
+                ),
             )
