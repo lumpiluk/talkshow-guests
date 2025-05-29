@@ -7,7 +7,10 @@ import json
 import re
 
 
-def get_episodes_from_zdf_page(response):
+def get_episodes_from_zdf_page(
+        response,
+        debug_dump_json=False,
+):
     # All relevant content is included in many <script>
     # elements at the end of the page:
     script_elems = response.css("script::text")
@@ -17,22 +20,39 @@ def get_episodes_from_zdf_page(response):
         if not script_data:
             continue
 
-        # Useful if you want to inspect the json objects:
-        # with open(f"debug_script-data_{hash(script_elem)}.json", "w") as f:
-        #     json.dump(script_data, f, indent=2)
+        # Useful if you want to inspect the json objects.
+        if debug_dump_json:
+            with open(
+                f"debug_script-data_{hash(script_elem.get())}.json",
+                "w"
+            ) as f:
+                json.dump(script_data, f, indent=2, ensure_ascii=False)
 
+        # Get all past episodes:
         try:
             season_objs: list[dict] = script_data[0][
                 "result"]["data"][
                 "smartCollectionByCanonical"][
                 "seasons"][
                 "nodes"]
+            for season_obj in season_objs:
+                for ep in season_obj["episodes"]["nodes"]:
+                    yield ep
         except (KeyError, TypeError):
             # Probably not the script_elem we are looking for
+            pass
+
+        # Get the next unaired episode, which is unfortunately
+        # not listed in the seaons_objs:
+        try:
+            # Structure of script_data when it contains the next episode
+            # (hopefully always):
+            # ["$L3a", ["$", "$L3b", null, {"children": ["$", "$L3e", null,
+            # {"collection": {...}}]}]]
+            yield script_data[1][3]["children"][3]["collection"]
+        except (IndexError, KeyError, TypeError):
+            # Probably not the script_elem we are looking for
             continue
-        for season_obj in season_objs:
-            for ep in season_obj["episodes"]["nodes"]:
-                yield ep
 
 
 def parse_script_text(text: str) -> dict:

@@ -16,7 +16,8 @@ class MaybritIllnerSpider(scrapy.Spider):
     ]
 
     def parse(self, response):
-        for episode_obj in get_episodes_from_zdf_page(response):
+        for episode_obj in get_episodes_from_zdf_page(
+                response, debug_dump_json=False):
             guests = []
             info_paragraph_objs = episode_obj.get(
                 "longInfoText", {}).get(

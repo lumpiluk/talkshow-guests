@@ -17,12 +17,12 @@ class MarkusLanzSpider(scrapy.Spider):
     ]
 
     def parse(self, response):
-        for episode_obj in get_episodes_from_zdf_page(response):
+        for episode_obj in get_episodes_from_zdf_page(
+                response, debug_dump_json=False):
             guest_paragraph_objs = episode_obj.get(
                 "longInfoText", {}).get(
                 "items", [{}])[0].get(
                 "paragraph")
-            print(guest_paragraph_objs)
             guests = [
                 GuestItem.from_text(m)
                 for par in guest_paragraph_objs
