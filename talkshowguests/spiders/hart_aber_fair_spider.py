@@ -40,11 +40,12 @@ class HartAberFairSpider(scrapy.Spider):
         for section in response.css(".sectionA"):
             if strip(section.css(".conHeadline::text").get()) != "Gäste":
                 continue
+            # Use a dict with keys only as an ordered set:
             guests = list({
-                GuestItem.from_text(strip(guest))
+                GuestItem.from_text(strip(guest)): None
                 for guest
                 in section.css(".box h4.headline::text").getall()
-            })
+            }.keys())
 
         topic = ""
         for section in response.css(".sectionA"):
