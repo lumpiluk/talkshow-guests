@@ -2,6 +2,7 @@ services:
   talkshowguests:
     build: .
     container_name: talkshowguests
+    restart: always
     environment:
       CRAWL_SCHEDULE: "*/10 * * * *"  # Schedule for the cron job
     env_file:
