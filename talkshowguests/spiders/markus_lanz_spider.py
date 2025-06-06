@@ -33,7 +33,11 @@ class MarkusLanzSpider(scrapy.Spider):
             ]
             yield TalkshowItem(
                 name="Markus Lanz",
-                isodate=episode_obj.get("editorialDate"),
+                isodate=episode_obj.get("editorialDate").split("T")[0],
+                # ^ editorialDate is sometimes used for the time when an
+                # episode airs, and sometimes for when some text has been
+                # edited. For lack of an alternative, we'll just truncate
+                # the time and use the date only.
                 topic=episode_obj.get("teaser", {}).get("description"),
                 topic_details="",
                 url=response.url,
@@ -42,7 +46,8 @@ class MarkusLanzSpider(scrapy.Spider):
                     location="Schützenstraße 15, 22761 Hamburg",
                     tickets_available=None,
                     doors="Ohne Publikum",
-                    # According to Wikipedia, recorded some hours before it airs
+                    # According to Wikipedia,
+                    # recorded some hours before it airs
                     tickets_url=None,
                 ),
             )

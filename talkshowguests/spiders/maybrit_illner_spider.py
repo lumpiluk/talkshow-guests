@@ -58,7 +58,11 @@ class MaybritIllnerSpider(scrapy.Spider):
                     break
             yield TalkshowItem(
                 name="Maybrit Illner",
-                isodate=episode_obj.get("editorialDate"),
+                isodate=episode_obj.get("editorialDate").split("T")[0],
+                # ^ editorialDate is sometimes used for the time when an
+                # episode airs, and sometimes for when some text has been
+                # edited. For lack of an alternative, we'll just truncate
+                # the time and use the date only.
                 topic=topic,
                 topic_details="",
                 url=response.url,
